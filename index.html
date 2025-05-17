@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChatGPT Threaded Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        #showSidebarChevron,
+        #hideSidebarBtn {
+            transition: opacity 0.3s, left 0.3s, top 0.3s;
+        }
+
+        #showSidebarChevron.hidden,
+        #hideSidebarBtn.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        @keyframes slideOutSidebar {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateX(-110%);
+                opacity: 0;
+            }
+        }
+
+        @keyframes slideInSidebar {
+            from {
+                transform: translateX(-110%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .animate-slide-out {
+            animation: slideOutSidebar 0.3s cubic-bezier(.4, 0, .2, 1) forwards;
+        }
+
+        .animate-slide-in {
+            animation: slideInSidebar 0.3s cubic-bezier(.4, 0, .2, 1) forwards;
+        }
+
+        html,
+        body {
+            background: #111827;
+        }
+
+        ::selection {
+            background: #2563eb;
+            /* blue-600 from Tailwind */
+            color: #fff;
+        }
+
+
+        .markdown-table th,
+        .markdown-table td {
+            border: 1px solid #374151;
+            padding: 0.3em 0.7em;
+        }
+
+        .markdown-table {
+            background: #181f2a;
+        }
+
+        /* Scrollbar for dark mode */
+        ::-webkit-scrollbar {
+            width: 8px;
+            background: #181f2a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 min-h-screen h-screen m-0 p-0 overflow-x-hidden text-gray-100">
+
+    <div class="min-h-screen h-screen flex flex-row bg-gray-900 w-full overflow-x-hidden items-stretch">
+        <!-- SIDEBAR/CONFIG -->
+        <aside id="sidebar"
+            class="fixed md:static inset-y-0 left-0 w-4/5 max-w-xs md:w-80 md:min-w-[260px] md:max-w-xs bg-gray-800 border-r border-gray-700 md:rounded-l-2xl px-6 py-8 flex flex-col gap-4 z-30 shadow-lg md:shadow-none transition-transform transform -translate-x-full md:translate-x-0 h-full md:min-h-screen"
+            style="max-width:330px">
+            <!-- Close icon mobile only -->
+            <button id="closeSidebar"
+                class="md:hidden absolute top-4 right-4 z-40 bg-gray-700 rounded-full p-2 hover:bg-gray-600 focus:outline-none"
+                aria-label="Close menu">
+                <!-- X ICON -->
+                <svg class="w-6 h-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <h2 class="text-2xl font-bold mb-4 text-center text-blue-400 tracking-tight">Your-GPT</h2>
+
+            <label class="font-semibold text-gray-300">Open API Key</label>
+            <input type="password" id="api-key" placeholder="Enter API Key..."
+                class="mb-2 w-full p-2 border border-gray-600 rounded bg-gray-900 text-gray-100 focus:outline-none focus:ring focus:border-blue-400" />
+            <div class="flex flex-col gap-2 mb-2">
+                <label class="font-semibold text-gray-300">Mode</label>
+                <select id="mode-select"
+                    class="p-2 border border-gray-600 rounded bg-gray-900 text-gray-100 focus:outline-none focus:ring">
+                    <option value="chat" selected>Chat</option>
+                    <option value="image">Image Generation</option>
+                    <!-- <option value="web">Web Search</option> -->
+                    <option value="image-edit">Image Edit</option>
+                </select>
+            </div>
+            <div class="flex flex-col gap-2 mb-2">
+                <label class="font-semibold text-gray-300">Model</label>
+                <select id="model-select"
+                    class="p-2 border border-gray-600 rounded bg-gray-900 text-gray-100 focus:outline-none focus:ring">
+                    <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+                    <option value="gpt-4">gpt-4</option>
+                    <option value="gpt-4o" selected>gpt-4o</option>
+                    <option value="gpt-4.1">gpt-4.1</option>
+                    <option value="dall-e-2">dall-e-2</option>
+                    <option value="dall-e-3">dall-e-3</option>
+                    <option value="gpt-image-1">gpt-image-1</option>
+                </select>
+            </div>
+            <div id="thread-controls" class="flex flex-col gap-2 mb-2">
+                <label class="font-semibold text-gray-300">Threads</label>
+                <select id="thread-select"
+                    class="p-2 border border-gray-600 rounded bg-gray-900 text-gray-100"></select>
+                <input type="text" id="new-thread" placeholder="New topic name"
+                    class="p-2 border border-gray-600 rounded bg-gray-900 text-gray-100" />
+                <div class="flex gap-2">
+                    <button onclick="createThread()"
+                        class="bg-green-600 text-white px-4 py-2 rounded-md shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-300 transition text-sm font-medium">
+                        Add
+                    </button>
+                    <button onclick="deleteThread()"
+                        class="bg-red-600 text-white px-4 py-2 rounded-md shadow hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 transition text-sm font-medium">
+                        Delete
+                    </button>
+                </div>
+
+            </div>
+            <div>
+                <label class="font-semibold text-gray-300">Attach file</label>
+                <input type="file" id="file-input" multiple accept="image/*,application/pdf,text/*"
+                    class="mt-1 block w-full p-2 border border-gray-600 rounded bg-gray-900 text-gray-100" />
+            </div>
+
+        </aside>
+
+        <!-- HIDE/SHOW SIDEBAR BUTTON (DESKTOP) -->
+        <button id="hideSidebarBtn"
+            class="hidden md:block absolute left-[20.5rem] top-6 z-40 bg-gray-900 border border-gray-700 rounded-full p-2 hover:bg-gray-800 focus:outline-none transition"
+            style="transition: left .25s;" aria-label="Hide sidebar">
+            <!-- Chevron left -->
+            <svg class="w-5 h-5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+        </button>
+        <button id="showSidebarChevron"
+            class="hidden md:block fixed left-2 top-6 z-40 bg-gray-900 border border-gray-700 rounded-full p-2 hover:bg-gray-800 focus:outline-none"
+            aria-label="Show sidebar">
+            <!-- Chevron right -->
+            <svg class="w-5 h-5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+        </button>
+
+        <div
+            class="flex-1 flex flex-col md:flex-row w-full max-w-screen-xl mx-auto bg-gray-900 h-full min-h-0 rounded-2xl shadow-xl md:m-8 m-2 border border-gray-800">
+            <!-- BURGER ICON FOR MOBILE -->
+            <button id="burger"
+                class="md:hidden absolute top-4 left-4 z-30 bg-gray-800 border border-gray-700 rounded-full p-2 hover:bg-gray-700 focus:outline-none"
+                aria-label="Open menu">
+                <!-- Burger ICON -->
+                <svg class="h-7 w-7 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+
+            <!-- Overlay for drawer (mobile only) -->
+            <div id="sidebarOverlay"
+                class="fixed inset-0 z-20 bg-black bg-opacity-50 transition-opacity hidden md:hidden" tabindex="-1"
+                aria-hidden="true"></div>
+
+            <!-- CHAT ROOM & INPUT -->
+            <main id="chatMain"
+                class="flex-1 flex flex-col min-h-0 h-full max-w-full transition-all overflow-x-auto p-2 md:p-6 bg-gray-900">
+                <div class="flex justify-end px-2 py-1">
+                    <div id="stream-stop-bar" class="flex justify-end px-2 py-1" style="display: none">
+                        <button id="stopStreamBtn"
+                            class="bg-red-600 text-white px-4 py-2 rounded-md shadow hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 transition text-sm font-medium">
+                            Stop Generating
+                        </button>
+                    </div>
+                    <div class="relative">
+                        <button id="chatMenuBtn"
+                            class="text-gray-500 hover:text-gray-200 px-2 py-1 rounded-full focus:outline-none bg-gray-800"
+                            title="Chat options">
+                            <!-- Ellipsis Icon -->
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <circle cx="12" cy="6" r="1.5" />
+                                <circle cx="12" cy="12" r="1.5" />
+                                <circle cx="12" cy="18" r="1.5" />
+                            </svg>
+                        </button>
+                        <div id="chatMenuDropdown"
+                            class="hidden absolute right-0 mt-2 w-36 bg-gray-800 border border-gray-700 rounded shadow-lg z-10">
+                            <button onclick="if(confirm('Clear all chat?')) clearChat();"
+                                class="block w-full px-4 py-2 text-left text-red-400 hover:bg-gray-700">Clear
+                                Chat</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="chat-box"
+                    class="flex-1 flex flex-col gap-2 px-2 py-4 bg-gray-950 border border-gray-800 overflow-y-auto overflow-x-auto h-full min-h-[200px] max-w-full rounded-xl transition shadow-inner">
+
+                    <!-- Messages rendered here -->
+                </div>
+                <form id="input-form" class="w-full bg-gray-900 border-t border-gray-800">
+                    <div class="flex gap-2 p-2">
+                        <textarea id="input" placeholder="Type a message..." required
+                            class="flex-1 p-3 border border-gray-700 bg-gray-800 text-gray-100 rounded resize-none min-h-[50px] max-h-[300px] focus:outline-none focus:ring focus:border-blue-600"
+                            style="transition: border-color .2s;"></textarea>
+                        <button type="submit"
+                            class="bg-blue-700 text-white px-6 py-2 rounded font-semibold hover:bg-blue-800 transition">Send</button>
+                    </div>
+                </form>
+            </main>
+        </div>
+    </div>
+    <script>
+        let currentStreamAbortController = null;
+        document.getElementById('chatMenuBtn').onclick = (e) => {
+            const dd = document.getElementById('chatMenuDropdown');
+            dd.classList.toggle('hidden');
+            e.stopPropagation();
+        };
+        window.onclick = () => document.getElementById('chatMenuDropdown').classList.add('hidden');
+        // ===== Sidebar/Chevron/Burger Logic (Gear REMOVED, Chevrons only on desktop) =====
+        const hideSidebarBtn = document.getElementById('hideSidebarBtn');
+        const chatMain = document.getElementById('chatMain');
+
+        const burger = document.getElementById('burger');
+        const sidebar = document.getElementById('sidebar');
+        const closeSidebar = document.getElementById('closeSidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const showSidebarChevron = document.getElementById('showSidebarChevron');
+        const collapseSidebarBtn = document.getElementById('collapseSidebarBtn');
+
+
+        function isDesktop() {
+            return window.innerWidth >= 768;
+        }
+
+        function updateChevronPosition() {
+            if (!isDesktop()) return;
+            if (!sidebar.classList.contains('hidden')) return;
+            const sidebarRect = sidebar.getBoundingClientRect();
+            showSidebarChevron.style.top = sidebarRect.top + 16 + 'px';
+            showSidebarChevron.style.left = '10px';
+        }
+
+        function hideSidebarDesktop() {
+            // Animate sidebar out
+            sidebar.classList.add('animate-slide-out');
+            // Hide chevron immediately for smoothness
+            hideSidebarBtn.classList.add('hidden');
+            // Show showSidebarChevron after sidebar hidden
+            setTimeout(() => {
+                sidebar.classList.add('hidden');
+                sidebar.classList.remove('animate-slide-out');
+                showSidebarChevron.classList.remove('hidden');
+                chatMain.classList.add('md:!rounded-l-2xl');
+                updateChevronPosition();
+            }, 300); // must match your transition duration
+        }
+        function showSidebarDesktop() {
+            sidebar.classList.remove('hidden');
+            sidebar.classList.add('animate-slide-in');
+            showSidebarChevron.classList.add('hidden');
+            chatMain.classList.remove('md:!rounded-l-2xl');
+            setTimeout(() => {
+                sidebar.classList.remove('animate-slide-in');
+                hideSidebarBtn.classList.remove('hidden');
+            }, 300);
+        }
+
+        function openSidebarMobile() {
+            sidebar.classList.remove('-translate-x-full');
+            sidebarOverlay.classList.remove('hidden');
+        }
+        function closeSidebarMobile() {
+            sidebar.classList.add('-translate-x-full');
+            sidebarOverlay.classList.add('hidden');
+        }
+
+        if (burger) burger.addEventListener('click', openSidebarMobile);
+        if (closeSidebar) closeSidebar.addEventListener('click', closeSidebarMobile);
+        if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebarMobile);
+        if (hideSidebarBtn) hideSidebarBtn.addEventListener('click', hideSidebarDesktop);
+        if (showSidebarChevron) showSidebarChevron.addEventListener('click', showSidebarDesktop);
+
+        window.addEventListener('resize', function () {
+            if (isDesktop()) {
+                sidebar.classList.remove('-translate-x-full');
+                sidebarOverlay.classList.add('hidden');
+                if (sidebar.classList.contains('hidden')) {
+                    showSidebarChevron.classList.remove('hidden');
+                    hideSidebarBtn.classList.add('hidden');
+                    updateChevronPosition();
+                } else {
+                    showSidebarChevron.classList.add('hidden');
+                    hideSidebarBtn.classList.remove('hidden');
+                }
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                sidebar.classList.remove('hidden');
+                showSidebarChevron.classList.add('hidden');
+                hideSidebarBtn.classList.add('hidden');
+                sidebarOverlay.classList.add('hidden');
+                showSidebarChevron.style.top = '2rem';
+                showSidebarChevron.style.left = '2rem';
+            }
+        });
+        window.addEventListener('scroll', updateChevronPosition);
+
+        window.addEventListener('DOMContentLoaded', function () {
+            if (isDesktop()) {
+                sidebar.classList.remove('-translate-x-full');
+                sidebar.classList.remove('hidden');
+                showSidebarChevron.classList.add('hidden');
+                hideSidebarBtn.classList.remove('hidden');
+                sidebarOverlay.classList.add('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                sidebar.classList.remove('hidden');
+                showSidebarChevron.classList.add('hidden');
+                hideSidebarBtn.classList.add('hidden');
+                sidebarOverlay.classList.add('hidden');
+            }
+        });
+
+        // burger.addEventListener('click', openSidebar);
+        // closeSidebar.addEventListener('click', closeSidebarFunc);
+        // sidebarOverlay.addEventListener('click', closeSidebarFunc);
+
+        // Optional: Hide sidebar jika resize ke desktop supaya ga nyangkut
+        window.addEventListener('resize', () => {
+            if (window.innerWidth < 768) {
+                sidebar.classList.add('-translate-x-full');
+                sidebar.classList.remove('hidden');
+                showConfigBtn.classList.add('hidden');
+                chatMain.classList.remove('w-full');
+            } else {
+                if (!sidebar.classList.contains('hidden')) {
+                    showConfigBtn.classList.add('hidden');
+                    chatMain.classList.remove('w-full');
+                }
+            }
+        });
+
+        // Dynamic resizing for textarea
+        const input = document.getElementById("input");
+        input.addEventListener("input", () => {
+            input.style.height = "auto";
+            input.style.height = input.scrollHeight + "px";
+        });
+        input.addEventListener("keydown", function (e) {
+            if (e.key === "Enter" && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                e.preventDefault();
+                input.form.requestSubmit();
+            }
+        });
+
+
+        const threadSelect = document.getElementById('thread-select');
+        const apiKeyInput = document.getElementById('api-key');
+        const modelSelect = document.getElementById('model-select');
+        const modeSelect = document.getElementById('mode-select');
+
+        const fileInput = document.getElementById('file-input');
+        let uploadedFilesByThread = {};
+        if (localStorage.getItem("uploadedFilesByThread")) {
+            try {
+                uploadedFilesByThread = JSON.parse(localStorage.getItem("uploadedFilesByThread"));
+            } catch (e) {
+                uploadedFilesByThread = {};
+            }
+        }
+        if (localStorage.getItem("uploadedFiles")) {
+            try {
+                uploadedFiles = JSON.parse(localStorage.getItem("uploadedFiles"));
+            } catch (e) {
+                uploadedFiles = [];
+            }
+        }
+
+        // Save function for uploaded files
+        function saveUploadedFiles() {
+            localStorage.setItem("uploadedFilesByThread", JSON.stringify(uploadedFilesByThread));
+        }
+        async function handleFileUpload(files) {
+            if (!apiKeyInput.value.trim()) {
+                alert("Please enter your API key before uploading files.");
+                fileInput.value = "";
+                return;
+            }
+            if (!uploadedFilesByThread[currentThread]) uploadedFilesByThread[currentThread] = []; // <-- ADD THIS LINE
+
+            for (const file of files) {
+                try {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('purpose', 'assistants');
+                    const res = await fetch("https://api.openai.com/v1/files", {
+                        method: "POST",
+                        headers: { "Authorization": `Bearer ${apiKeyInput.value.trim()}` },
+                        body: formData
+                    });
+                    if (!res.ok) {
+                        const error = await res.json();
+                        alert("File upload failed: " + (error.error?.message || 'Unknown error'));
+                        continue;
+                    }
+                    const json = await res.json();
+                    uploadedFilesByThread[currentThread].push({
+                        name: file.name,
+                        id: json.id,
+                        purpose: json.purpose,
+                        type: file.type
+                    });
+                    saveUploadedFiles();  // <-- Save to localStorage every time!
+                } catch (err) {
+                    alert("File upload error: " + err.message);
+                }
+            }
+            fileInput.value = "";
+            renderUploadStatus();
+        }
+        async function removeUploadedFile(idx) {
+            const files = uploadedFilesByThread[currentThread] || [];
+            const file = files[idx];
+            if (!file) return;
+            if (!confirm(`Delete file "${file.name}" from OpenAI and remove from this thread?`)) return;
+            const apiKey = apiKeyInput.value.trim();
+
+            try {
+                const res = await fetch(`https://api.openai.com/v1/files/${file.id}`, {
+                    method: 'DELETE',
+                    headers: { "Authorization": `Bearer ${apiKey}` }
+                });
+                if (!res.ok) {
+                    const err = await res.json();
+                    alert("Failed to delete file on OpenAI: " + (err.error?.message || "Unknown error"));
+                    return;
+                }
+                files.splice(idx, 1); // <-- REMOVE FROM CURRENT THREAD ONLY
+                saveUploadedFiles();
+                renderUploadStatus();
+            } catch (e) {
+                alert("Network or server error trying to delete file: " + e.message);
+            }
+        }
+        function renderUploadStatus() {
+            let statusBox = document.getElementById('upload-status');
+            if (!statusBox) {
+                statusBox = document.createElement('div');
+                statusBox.id = 'upload-status';
+                statusBox.className = "text-xs text-gray-600 ml-1 mb-2";
+                fileInput.parentNode.appendChild(statusBox);
+            }
+            const files = uploadedFilesByThread[currentThread] || []; // <-- CHANGE
+            if (files.length === 0) {
+                statusBox.innerHTML = "No files uploaded for this thread.";
+            } else {
+                statusBox.innerHTML = "Uploaded files:<ul style='margin-top: 0.25em'>";
+                files.forEach((f, i) => {
+                    statusBox.innerHTML += `
+            <li class="flex items-center gap-1 my-1">
+                <span class="font-semibold">${f.name}</span>
+                <span class="text-gray-500 text-[10px]">(${f.id})</span>
+                <button
+                    title="Remove file"
+                    onclick="removeUploadedFile(${i})"
+                    style="font-size:10px;padding:0 6px;"
+                    class="bg-red-500 text-white rounded hover:bg-red-600 ml-1"
+                    type="button"
+                >✕</button>
+            </li>`;
+                });
+                statusBox.innerHTML += "</ul>";
+            }
+        }
+        // make removeUploadedFile globally accessible
+        window.removeUploadedFile = removeUploadedFile;
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files.length) {
+                handleFileUpload(Array.from(e.target.files));
+            }
+        });
+
+        // === Model & Mode Validation Logic ===
+        const validModels = {
+            chat: ["gpt-3.5-turbo", "gpt-4", "gpt-4o", "gpt-4.1"],
+            image: ["dall-e-2", "dall-e-3", "gpt-image-1"],
+            web: ["gpt-3.5-turbo", "gpt-4", "gpt-4o", "gpt-4.1"] // Customize as needed!
+        };
+        const defaultModel = {
+            chat: "gpt-4.1",
+            image: "dall-e-3",
+            web: "gpt-4.1"
+        };
+
+        // Restore localStorage for apiKey
+        if (localStorage.getItem('apiKey')) {
+            apiKeyInput.value = localStorage.getItem('apiKey');
+        }
+        apiKeyInput.addEventListener('change', () => {
+            localStorage.setItem('apiKey', apiKeyInput.value.trim());
+        });
+
+        function validateModelOptions() {
+            const mode = modeSelect.value;
+            Array.from(modelSelect.options).forEach(opt => {
+                if (validModels[mode].includes(opt.value)) {
+                    opt.disabled = false;
+                } else {
+                    opt.disabled = true;
+                }
+            });
+            // If current selection not valid, or first time, set to default
+            if (!validModels[mode].includes(modelSelect.value)) {
+                modelSelect.value = defaultModel[mode];
+                localStorage.setItem('model', modelSelect.value);
+            }
+        }
+
+        if (localStorage.getItem('mode')) {
+            modeSelect.value = localStorage.getItem('mode');
+        }
+        if (localStorage.getItem('model')) {
+            modelSelect.value = localStorage.getItem('model');
+        }
+
+        validateModelOptions();
+
+        modeSelect.addEventListener('change', () => {
+            localStorage.setItem('mode', modeSelect.value);
+            validateModelOptions();
+        });
+
+        modelSelect.addEventListener('change', () => {
+            localStorage.setItem('model', modelSelect.value);
+        });
+
+        if (localStorage.getItem('apiKey')) {
+            apiKeyInput.value = localStorage.getItem('apiKey');
+        }
+        apiKeyInput.addEventListener('change', () => {
+            localStorage.setItem('apiKey', apiKeyInput.value.trim());
+        });
+        if (localStorage.getItem('model')) {
+            modelSelect.value = localStorage.getItem('model');
+        }
+        modelSelect.addEventListener('change', () => {
+            localStorage.setItem('model', modelSelect.value);
+        });
+        if (localStorage.getItem('mode')) {
+            modeSelect.value = localStorage.getItem('mode');
+        }
+        modeSelect.addEventListener('change', () => {
+            localStorage.setItem('mode', modeSelect.value);
+        });
+
+        let threadData = JSON.parse(localStorage.getItem('threads') || '{}');
+        let currentThread = Object.keys(threadData)[0] || 'Default';
+        if (!threadData[currentThread]) threadData[currentThread] = [];
+
+        function saveThreads() { localStorage.setItem('threads', JSON.stringify(threadData)); }
+        function populateThreads() {
+            threadSelect.innerHTML = '';
+            Object.keys(threadData).forEach(thread => {
+                const option = document.createElement('option');
+                option.value = thread;
+                option.textContent = thread;
+                threadSelect.appendChild(option);
+            });
+            threadSelect.value = currentThread;
+        }
+        function createThread() {
+            const name = document.getElementById('new-thread').value.trim();
+            if (!name || threadData[name]) return;
+            threadData[name] = [];
+            currentThread = name;
+            saveThreads();
+            populateThreads();
+            document.getElementById('new-thread').value = '';
+            renderChat();
+        }
+        function clearChat() {
+            threadData[currentThread] = [];
+            saveThreads();
+            renderChat();
+        }
+        function deleteThread() {
+            if (confirm(`Delete thread "${currentThread}"?`)) {
+                delete threadData[currentThread];
+                currentThread = Object.keys(threadData)[0] || 'Default';
+                if (!threadData[currentThread]) threadData[currentThread] = [];
+                saveThreads();
+                populateThreads();
+                renderChat();
+            }
+        }
+        threadSelect.addEventListener('change', () => {
+            currentThread = threadSelect.value;
+            renderChat();
+            renderUploadStatus();
+        });
+
+
+        // Render Markdown, including <pre><code> blocks for code
+        function renderMarkdown(text) {
+            // Step 1: Extract code blocks & inline code to avoid parsing their markdown/html
+            let codeblocks = [];
+            text = text.replace(/```([\w]*)\n([\s\S]*?)```/g, function (m, lang, code) {
+                codeblocks.push(code);
+                return `__CODEBLOCK_${codeblocks.length - 1}__`;
+            });
+
+            let inlines = [];
+            text = text.replace(/`([^`\n]+?)`/g, function (m, code) {
+                inlines.push(code);
+                return `__INLINE_${inlines.length - 1}__`;
+            });
+
+            // Step 2: Escape ALL raw HTML (now code tokens in place)
+            text = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+            // Step 3: Tables (GitHub-flavored)
+            text = text.replace(/^( *\|[^\n]+?\| *\n *\|[-| :]+\| *(?:\n[^\n]*\|[^\n]+?\| *)*)/gm, function (mdTable) {
+                const lines = mdTable.trim().split('\n');
+                if (lines.length < 2) return mdTable;
+
+                // Header and separator
+                const header = lines[0].trim();
+                const separator = lines[1].trim();
+
+                // Ensure the separator row is valid (contains only pipes, colons, dashes, and spaces)
+                if (!/^\|[\s\-:|]+\|$/.test(separator)) return mdTable;
+
+                // Data rows
+                const dataRows = lines.slice(2);
+
+                // Helper to parse row | cell | cell |
+                const parseRow = rowStr =>
+                    rowStr
+                        .trim()
+                        .replace(/^\||\|$/g, '') // remove leading/trailing '|'
+                        .split('|')
+                        .map(cell => cell.trim());
+
+                const headerCells = parseRow(header);
+
+                // Build table HTML
+                let html = `<table class="my-2 table-auto border border-gray-700 markdown-table"><thead><tr>`;
+                html += headerCells.map(h => `<th>${h}</th>`).join('');
+                html += `</tr></thead><tbody>`;
+
+                for (let row of dataRows) {
+                    if (!/\|/.test(row)) continue; // skip lines without pipes
+                    const cells = parseRow(row);
+                    html += '<tr>' +
+                        headerCells.map((_, idx) => `<td>${cells[idx] !== undefined ? cells[idx] : ''}</td>`).join('') +
+                        '</tr>';
+                }
+                html += '</tbody></table>';
+                return html;
+            });
+
+            // Step 4: Headings
+            text = text.replace(/^### (.*)$/gm, '<h3 class="font-bold text-lg mt-3 mb-1">$1</h3>');
+            text = text.replace(/^## (.*)$/gm, '<h2 class="font-bold text-xl mt-3 mb-2">$1</h2>');
+            text = text.replace(/^# (.*)$/gm, '<h1 class="font-bold text-2xl mt-4 mb-2">$1</h1>');
+
+            // Step 5: Bold and italics
+            text = text.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+            text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+
+            // Step 6: Lists
+            // Only wrap <li> lines that aren't already in a list (<ul>...</ul>)
+            text = text.replace(/(^|\n)-\s(.+)(?=\n|$)/g, '$1<li>$2</li>');
+            text = text.replace(/((?:<li>[\s\S]+?<\/li>\s*)+)/g, m => `<ul>${m}</ul>`);
+            text = text.replace(/<\/ul>\s*<ul>/g, ''); // avoid nested uls
+
+            // Step 7: Paragraphs (split by double newlines, unless block/heading/table)
+            text = text.split(/\n{2,}/).map(block => {
+                if (/^\s*<(pre|ul|ol|li|h[1-6]|table)[\s>]/.test(block.trim())) {
+                    return block;
+                }
+                return `<p>${block.replace(/\n/g, '<br>')}</p>`;
+            }).join('\n');
+
+            // Step 8: Restore inline code and code blocks
+            text = text.replace(/__INLINE_(\d+)__/g, function (_, i) {
+                return `<code class="rounded px-1">${escapeHtml(inlines[i])}</code>`;
+            });
+            text = text.replace(/__CODEBLOCK_(\d+)__/g, function (_, i) {
+                return `<pre class="relative group text-gray-100 rounded-md p-3 my-2 overflow-x-auto"><code>${escapeHtml(codeblocks[i])}</code></pre>`;
+            });
+
+            return text;
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
+        // Add copy buttons to all code blocks in chat
+        function addCopyButtons() {
+            // Remove existing copy buttons first (prevents duplicates)
+            document.querySelectorAll('#chat-box .copy-btn').forEach(btn => btn.remove());
+
+            // For each code block in assistant messages
+            document.querySelectorAll('#chat-box pre > code').forEach((block, idx) => {
+                // Only add once per pre
+                const pre = block.parentElement;
+                if (pre.querySelector('.copy-btn')) return;
+
+                const btn = document.createElement('button');
+                btn.type = "button";
+                btn.textContent = "Copy";
+                btn.className = "copy-btn absolute top-2 right-2 px-2 py-1 rounded bg-blue-800 hover:bg-blue-700 text-sm text-white transition z-10";
+
+                btn.onclick = async e => {
+                    e.stopPropagation();
+                    // copy text to clipboard, keep indentation
+                    await navigator.clipboard.writeText(block.innerText);
+                    btn.textContent = "Copied!";
+                    btn.classList.remove("bg-blue-800");
+                    btn.classList.add("bg-green-700");
+                    setTimeout(() => {
+                        btn.textContent = "Copy";
+                        btn.classList.remove("bg-green-700");
+                        btn.classList.add("bg-blue-800");
+                    }, 1200);
+                };
+                pre.classList.add("relative"); // For absolute positioning
+                pre.appendChild(btn);
+            });
+        }
+
+        function renderChat() {
+            const chatBox = document.getElementById('chat-box');
+            chatBox.innerHTML = '';
+            if (!threadData[currentThread].length) {
+                chatBox.innerHTML = `
+    <div class="flex-1 flex items-center justify-center text-gray-400 text-lg min-h-[200px]">
+      No messages yet. Start the conversation!
+    </div>`;
+            }
+            threadData[currentThread].forEach(({ role, content, images }) => {
+                const div = document.createElement('div');
+                div.className = 'flex ' + (role === 'user' ? 'justify-end' : 'justify-start');
+                const bubble = document.createElement('div');
+                bubble.className =
+                    "break-words max-w-[90vw] md:max-w-2xl px-4 py-2 rounded-2xl " +
+                    (role === 'user'
+                        ? "bg-blue-800 text-white rounded-br-sm shadow self-end"
+                        : "bg-gray-800 text-blue-100 rounded-bl-sm shadow self-start"
+                    );
+                if (role === 'assistant' && images && images.length) {
+                    // Render images with always-on download button
+                    bubble.innerHTML = images.map((url, idx) =>
+                        `<div class="relative inline-block">
+            <img src="${url}" alt="AI Generated" class="rounded-xl my-2 max-w-full border shadow-lg mx-auto block">
+            <a href="${url}"
+               download="generated-image-${idx + 1}.png"
+               class="flex absolute top-2 right-2 bg-white/90 border border-gray-300 rounded-full p-2 shadow-lg items-center justify-center transition hover:bg-blue-600 hover:text-white"
+               title="Download image"
+               target="_blank"
+               style="z-index:10"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 20 20" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 10V3m6 7V3m0 0a4 4 0 10-8 0v7m4 4v7m0 0l-3.5-3.5M10 21l3.5-3.5"/>
+                </svg>
+            </a>
+         </div>`
+                    ).join("") + ((content && !content.startsWith('[Image generated')) ? '<div class="pt-1">' + renderMarkdown(content) + '</div>' : "");
+                } else if (role === 'assistant') {
+                    bubble.innerHTML = renderMarkdown(content);
+                } else {
+                    bubble.textContent = content;
+                }
+                div.appendChild(bubble);
+                chatBox.appendChild(div);
+            });
+            addCopyButtons();
+            requestAnimationFrame(() => {
+                chatBox.scrollTop = chatBox.scrollHeight;
+            });
+
+            // Quick fix: Make download button always visible on hover of image container
+            document.querySelectorAll('#chat-box .group').forEach(function (group) {
+                group.addEventListener('mouseenter', function () {
+                    const btn = group.querySelector('a');
+                    if (btn) btn.classList.remove('hidden');
+                });
+                group.addEventListener('mouseleave', function () {
+                    const btn = group.querySelector('a');
+                    if (btn) btn.classList.add('hidden');
+                });
+            });
+        }
+
+
+
+        document.getElementById('input-form').addEventListener('submit', async (e) => {
+            hideStopStreamBtn();
+            if (currentStreamAbortController) {
+                currentStreamAbortController.abort();
+                currentStreamAbortController = null;
+            }
+
+            e.preventDefault();
+            const message = input.value.trim();
+            if (!message) return;
+
+            threadData[currentThread].push({ role: 'user', content: message });
+            renderChat();
+            input.value = '';
+
+            const chatBox = document.getElementById('chat-box');
+            const assistantDiv = document.createElement('div');
+            assistantDiv.className = 'flex justify-start';
+            const bubble = document.createElement('div');
+            bubble.className = "break-words max-w-[90%] px-4 py-2 rounded-2xl bg-gray-800 text-blue-100 rounded-bl-sm shadow self-start";
+            bubble.innerHTML = renderMarkdown('');
+            assistantDiv.appendChild(bubble);
+            chatBox.appendChild(assistantDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            const mode = modeSelect.value;
+            const apiKey = apiKeyInput.value.trim();
+            const model = modelSelect.value;
+            const messages = threadData[currentThread].map(m => ({ role: m.role, content: m.content }));
+
+            try {
+                // ==== IMAGE GENERATION MODE ====
+                if (mode === "image") {
+                    bubble.innerHTML = "<em>Generating image...</em>";
+                    const res = await fetch("https://api.openai.com/v1/images/generations", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${apiKey}`,
+                        },
+                        body: JSON.stringify({
+                            prompt: message,
+                            n: 1,
+                            model: model,
+                            size: "1024x1024"
+                        }),
+                    });
+                    if (!res.ok) {
+                        const errText = await res.text();
+                        throw new Error("Image API error: " + errText);
+                    }
+                    const json = await res.json();
+                    const urls = (json.data ?? []).map(obj => obj.url).filter(Boolean);
+
+                    if (urls.length === 0) {
+                        bubble.innerHTML = "<em>No image returned.</em>";
+                    } else {
+                        bubble.innerHTML = urls.map(url =>
+                            `<img src="${url}" alt="AI Generated" class="rounded-xl my-2 max-w-full border shadow-lg mx-auto">`
+                        ).join("");
+                    }
+                    threadData[currentThread].push({
+                        role: 'assistant',
+                        content: `[Image generated for prompt: "${message}"]`,
+                        images: urls
+                    });
+                    saveThreads();
+                    renderChat();
+                    return;
+                }
+
+                // ==== WEB SEARCH MODE ====
+                if (mode !== 'chat') {
+                    // ==== WEB SEARCH MODE ====
+                    if (mode === 'web') {
+                        // Always use Jakarta, Indonesia as the user location
+                        const locationDesc = "Jakarta, Indonesia (ID)";
+                        const systemPrompt = `You are an AI assistant able to search the web for up-to-date information. The user's location is: ${locationDesc}. When searching for local results, prioritize this location.`;
+
+                        const body = {
+                            model,
+                            messages: [
+                                { role: "system", content: systemPrompt },
+                                ...messages
+                            ],
+                            tools: [
+                                {
+                                    type: "function",
+                                    function: {
+                                        name: "web_search",
+                                        description: "Search the web for recent or factual information, optionally using the user's location to refine the search.",
+                                        parameters: {
+                                            type: "object",
+                                            properties: {
+                                                query: {
+                                                    type: "string",
+                                                    description: "The search query"
+                                                },
+                                                location: {
+                                                    type: "string",
+                                                    description: "User location for localized results, e.g. 'Jakarta, Indonesia'"
+                                                }
+                                            },
+                                            required: ["query"]
+                                        }
+                                    }
+                                }
+                            ],
+                            tool_choice: "auto"
+                        };
+
+                        // Optionally, append location to the user's latest message for clarity
+                        if (body.messages[body.messages.length - 1].role === "user") {
+                            body.messages[body.messages.length - 1].content += `\n[User location: ${locationDesc}]`;
+                        }
+
+                        // Create and store AbortController for this stream
+                        currentStreamAbortController = new AbortController();
+                        showStopStreamBtn();
+
+                        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${apiKey}`,
+                            },
+                            body: JSON.stringify(body),
+                            signal: currentStreamAbortController.signal
+                        });
+
+                        const result = await response.json();
+                        const content = result.choices?.[0]?.message?.content || 'No response';
+                        bubble.innerHTML = renderMarkdown(content);
+                        threadData[currentThread].push({ role: 'assistant', content: content });
+                        saveThreads();
+                        renderChat();
+                        return;
+                    }
+
+                }
+
+                // ==== CHAT MODE WITH FILE/IMAGE SUPPORT ====
+                // Integrate uploaded files as per OpenAI API best practices
+                bubble.innerHTML = '<em>Thinking ...</em>';
+
+                let openaiMessages = messages.map(m => ({ role: m.role, content: m.content }));
+                const uploadedFiles = uploadedFilesByThread[currentThread] || []; // <-- USE THIS
+
+                if (uploadedFiles.length > 0) {
+                    let contentParts = [{ type: "text", text: message }];
+                    for (const file of uploadedFiles) {
+                        if (file.type.startsWith("image/")) {
+                            contentParts.push({
+                                type: "image_file",
+                                image_file: { file_id: file.id }
+                            });
+                        } else {
+                            contentParts.push({
+                                type: "file",
+                                file: { file_id: file.id }
+                            });
+                        }
+                    }
+                    openaiMessages.pop();
+                    openaiMessages.push({
+                        role: "user",
+                        content: contentParts
+                    });
+                }
+
+                const body = {
+                    model,
+                    messages: openaiMessages,
+                    temperature: 0.7,
+                    stream: true
+                };
+
+                // Create and store AbortController for this stream
+                currentStreamAbortController = new AbortController();
+                showStopStreamBtn();
+
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`,
+                    },
+                    body: JSON.stringify(body),
+                    signal: currentStreamAbortController.signal
+                });
+
+
+                if (!response.body) {
+                    bubble.textContent = 'No response from server';
+                    return;
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let assistantMessage = '';
+                let aborted = false;
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+                    buffer += decoder.decode(value, { stream: true });
+
+                    let lines = buffer.split('\n');
+                    buffer = lines.pop();
+
+                    for (let line of lines) {
+                        line = line.trim();
+                        if (!line) continue;
+                        if (line.startsWith('data: ')) line = line.slice(6);
+                        if (line === '[DONE]') {
+                            threadData[currentThread].push({ role: 'assistant', content: assistantMessage });
+                            saveThreads();
+                            renderChat();
+                            currentStreamAbortController = null;
+                            hideStopStreamBtn();
+                            // Clear uploaded files after use
+                            // uploadedFiles = [];
+                            // saveUploadedFiles();           
+                            // renderUploadStatus && renderUploadStatus();
+                            return;
+                        }
+                        try {
+                            const json = JSON.parse(line);
+                            const delta = json.choices?.[0]?.delta?.content ?? '';
+                            if (delta) {
+                                assistantMessage += delta;
+                                bubble.innerHTML = renderMarkdown(assistantMessage);
+                                addCopyButtons();
+                                requestAnimationFrame(() => {
+                                    chatBox.scrollTop = chatBox.scrollHeight;
+                                });
+                                chatBox.scrollTop = chatBox.scrollHeight;
+                            }
+                        } catch (err) { /* ignore malformed input */ }
+                    }
+                }
+            } catch (err) {
+                if (err.name === 'AbortError') {
+                    aborted = true;
+                } else {
+                    bubble.textContent = `API error: ${err.message}`;
+                }
+            }
+            currentStreamAbortController = null;
+            hideStopStreamBtn();
+            if (aborted) {
+                bubble.innerHTML += '<br><em class="text-red-400">[Stopped by user]</em>';
+            }
+        });
+
+        function showStopStreamBtn() {
+            const btn = document.getElementById('stopStreamBtn');
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = "Stop Generating";
+            }
+            document.getElementById('stream-stop-bar').style.display = '';
+        }
+
+        function hideStopStreamBtn() {
+            const btn = document.getElementById('stopStreamBtn');
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = "Stop Generating";
+            }
+            document.getElementById('stream-stop-bar').style.display = 'none';
+        }
+
+
+
+        document.getElementById('stopStreamBtn').onclick = function () {
+            if (currentStreamAbortController) {
+                currentStreamAbortController.abort();
+                this.disabled = true;
+                this.textContent = "Stopping...";
+            }
+        };
+
+
+        populateThreads();
+        renderChat();
+        renderUploadStatus();
+
+    </script>
+</body>
+
+</html>
