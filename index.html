@@ -132,7 +132,7 @@
                     class="p-2 border border-gray-600 rounded bg-gray-900 text-gray-100 focus:outline-none focus:ring">
                     <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
                     <option value="gpt-4">gpt-4</option>
-                    <option value="gpt-4o" >gpt-4o</option>
+                    <option value="gpt-4o">gpt-4o</option>
                     <option value="gpt-4.1" selected>gpt-4.1</option>
                     <option value="dall-e-2">dall-e-2</option>
                     <option value="dall-e-3">dall-e-3</option>
@@ -162,13 +162,23 @@
                 <input type="file" id="file-input" multiple accept="image/*,application/pdf,text/*"
                     class="mt-1 block w-full p-2 border border-gray-600 rounded bg-gray-900 text-gray-100" />
             </div>
+            <!-- Contact Button -->
+            <button id="contactBtn" type="button"
+                class="bg-blue-500 text-white rounded px-4 py-2 font-bold flex items-center gap-2 hover:bg-blue-600 transition w-full mt-4">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M16 12v1a4 4 0 01-8 0v-1M12 16v2m-6 4h12a2 2 0 002-2v-4a2 2 0 00-2-2H6a2 2 0 00-2 2v4a2 2 0 002 2z" />
+                </svg>
+                Contact
+            </button>
+
             <!-- Saweria Donation Box -->
             <a href="https://saweria.co/andrepelealu" target="_blank"
-            class="bg-yellow-400 text-gray-900 rounded px-4 py-2 font-bold flex items-center gap-2 hover:bg-yellow-300">
-             <img src="https://saweria.co/favicon.ico" alt="Saweria logo" class="w-6 h-6" />
-             Donate via Saweria
-         </a>
-         
+                class="bg-yellow-400 text-gray-900 rounded px-4 py-2 font-bold flex items-center gap-2 hover:bg-yellow-300">
+                <img src="https://saweria.co/favicon.ico" alt="Saweria logo" class="w-6 h-6" />
+                Donate via Saweria
+            </a>
+
 
 
         </aside>
@@ -256,23 +266,79 @@
         </div>
     </div>
     <!-- Saweria Donation Popup Modal -->
-<div id="saweriaModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-[9999] hidden">
-    <div class="bg-gray-800 border border-gray-700 rounded-xl shadow-xl max-w-sm w-full p-6 mx-3 text-center relative">
-      <button id="closeSaweriaModal" class="absolute top-3 right-3 p-2 bg-gray-700 rounded-full hover:bg-gray-600 text-gray-300 focus:outline-none" aria-label="Close">
-        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-      </button>
-      <img src="https://saweria.co/favicon.ico" class="mx-auto w-12 h-12 mb-3" alt="Saweria Logo">
-      <h3 class="text-lg font-bold text-yellow-400 mb-2">Support This Project</h3>
-      <p class="text-gray-200 mb-4">
-        If you find this tool useful, please kindly consider donating via Saweria to help support further development. Thank you for your generosity! 😊
-      </p>
-      <a href="https://saweria.co/andrepelealu" target="_blank"
-         class="inline-flex items-center gap-2 bg-yellow-400 text-gray-900 rounded px-4 py-2 font-bold hover:bg-yellow-300 transition">
-        <img src="https://saweria.co/favicon.ico" alt="Saweria" class="w-5 h-5"> Donate via Saweria
-      </a>
+    <div id="saweriaModal"
+        class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-[9999] hidden">
+        <div
+            class="bg-gray-800 border border-gray-700 rounded-xl shadow-xl max-w-sm w-full p-6 mx-3 text-center relative">
+            <button id="closeSaweriaModal"
+                class="absolute top-3 right-3 p-2 bg-gray-700 rounded-full hover:bg-gray-600 text-gray-300 focus:outline-none"
+                aria-label="Close">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <img src="https://saweria.co/favicon.ico" class="mx-auto w-12 h-12 mb-3" alt="Saweria Logo">
+            <h3 class="text-lg font-bold text-yellow-400 mb-2">Support This Project</h3>
+            <p class="text-gray-200 mb-4">
+                If you find this tool useful, please kindly consider donating via Saweria to help support further
+                development. Thank you for your generosity! 😊
+            </p>
+            <a href="https://saweria.co/andrepelealu" target="_blank"
+                class="inline-flex items-center gap-2 bg-yellow-400 text-gray-900 rounded px-4 py-2 font-bold hover:bg-yellow-300 transition">
+                <img src="https://saweria.co/favicon.ico" alt="Saweria" class="w-5 h-5"> Donate via Saweria
+            </a>
+        </div>
     </div>
-  </div>
-  
+
+    <!-- Contact Modal -->
+    <div id="contactModal"
+        class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-[9999] hidden">
+        <div
+            class="bg-gray-800 border border-gray-700 rounded-xl shadow-xl max-w-sm w-full p-6 mx-3 text-center relative">
+            <button id="closeContactModal"
+                class="absolute top-3 right-3 p-2 bg-gray-700 rounded-full hover:bg-gray-600 text-gray-300 focus:outline-none"
+                aria-label="Close">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <h3 class="text-lg font-bold text-blue-400 mb-2">Contact Me</h3>
+            <p class="text-gray-200 mb-4">
+                I'd love to connect! You can reach me via:
+            </p>
+            <div class="flex flex-col gap-3 text-left mb-2">
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" stroke-width="2"
+                        viewBox="0 0 24 24">
+                        <path
+                            d="M16 12v1a4 4 0 01-8 0v-1m8 4v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-4a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2z" />
+                    </svg>
+                    <span class="text-gray-100">Email:</span>
+                    <a href="mailto:projects.andrepelealu@gmail.com"
+                        class="text-blue-300 hover:underline break-all">projects.andrepelealu@gmail.com</a>
+                </div>
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5 text-pink-400" fill="currentColor" viewBox="0 0 24 24">
+                        <path
+                            d="M7.75 2C4.678 2 2 4.678 2 7.75v8.5C2 19.322 4.678 22 7.75 22h8.5C19.322 22 22 19.322 22 16.25v-8.5C22 4.678 19.322 2 16.25 2h-8.5zm8.5 1.5A6.25 6.25 0 0120.5 7.75v8.5A6.25 6.25 0 0116.25 20.5h-8.5A6.25 6.25 0 013.5 16.25v-8.5A6.25 6.25 0 017.75 3.5h8.5zm-4.25 3.25a5 5 0 100 10 5 5 0 000-10zm0 1.5a3.5 3.5 0 110 7 3.5 3.5 0 010-7zm6.25 1.25a1.25 1.25 0 11-2.5 0 1.25 1.25 0 012.5 0z" />
+                    </svg>
+                    <span class="text-gray-100">Instagram:</span>
+                    <a href="https://instagram.com/andrepelealu" target="_blank"
+                        class="text-blue-300 hover:underline">@andrepelealu</a>
+                </div>
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                        <path
+                            d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-9h3v9zm-1.5-10.271c-.966 0-1.75-.785-1.75-1.75 0-.967.784-1.75 1.75-1.75s1.75.783 1.75 1.75c0 .965-.784 1.75-1.75 1.75zm15.5 10.271h-3v-4.5c0-1.072-.021-2.452-1.496-2.452-1.497 0-1.726 1.17-1.726 2.377v4.575h-3v-9h2.885v1.229h.041c.402-.761 1.38-1.563 2.844-1.563 3.042 0 3.604 2.003 3.604 4.607v4.727z" />
+                    </svg>
+                    <span class="text-gray-100">LinkedIn:</span>
+                    <a href="https://www.linkedin.com/in/andrepelealu/" target="_blank"
+                        class="text-blue-300 hover:underline break-all">linkedin.com/in/andrepelealu</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         let currentStreamAbortController = null;
         document.getElementById('chatMenuBtn').onclick = (e) => {
@@ -1151,24 +1217,36 @@
         populateThreads();
         renderChat();
         renderUploadStatus();
-// Show Saweria popup after 25 seconds, once per session
-(function() {
-    if (!sessionStorage.getItem("saweriaModalShown")) {
-        setTimeout(() => {
-            document.getElementById('saweriaModal').classList.remove('hidden');
-            sessionStorage.setItem("saweriaModalShown", "1");
-        }, 25000); // 25 seconds
-    }
-    // Close modal when X is clicked or clicking outside
-    document.getElementById('closeSaweriaModal').onclick = function() {
-        document.getElementById('saweriaModal').classList.add('hidden');
-    };
-    document.getElementById('saweriaModal').addEventListener('click', function(e) {
-        if (e.target === this) this.classList.add('hidden');
-    });
-})();
+        // Show Saweria popup after 25 seconds, once per session
+        (function () {
+            if (!sessionStorage.getItem("saweriaModalShown")) {
+                setTimeout(() => {
+                    document.getElementById('saweriaModal').classList.remove('hidden');
+                    sessionStorage.setItem("saweriaModalShown", "1");
+                }, 25000); // 25 seconds
+            }
+            // Close modal when X is clicked or clicking outside
+            document.getElementById('closeSaweriaModal').onclick = function () {
+                document.getElementById('saweriaModal').classList.add('hidden');
+            };
+            document.getElementById('saweriaModal').addEventListener('click', function (e) {
+                if (e.target === this) this.classList.add('hidden');
+            });
+        })();
+        // Contact Modal logic
+        document.getElementById('contactBtn').onclick = function () {
+            document.getElementById('contactModal').classList.remove('hidden');
+        };
+        document.getElementById('closeContactModal').onclick = function () {
+            document.getElementById('contactModal').classList.add('hidden');
+        };
+        document.getElementById('contactModal').addEventListener('click', function (e) {
+            if (e.target === this) this.classList.add('hidden');
+        });
 
     </script>
+
+
 </body>
 
 </html>
