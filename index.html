@@ -162,6 +162,14 @@
                 <input type="file" id="file-input" multiple accept="image/*,application/pdf,text/*"
                     class="mt-1 block w-full p-2 border border-gray-600 rounded bg-gray-900 text-gray-100" />
             </div>
+            <!-- Saweria Donation Box -->
+            <a href="https://saweria.co/andrepelealu" target="_blank"
+            class="bg-yellow-400 text-gray-900 rounded px-4 py-2 font-bold flex items-center gap-2 hover:bg-yellow-300">
+             <img src="https://saweria.co/favicon.ico" alt="Saweria logo" class="w-6 h-6" />
+             Donate via Saweria
+         </a>
+         
+
 
         </aside>
 
@@ -247,6 +255,24 @@
             </main>
         </div>
     </div>
+    <!-- Saweria Donation Popup Modal -->
+<div id="saweriaModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-[9999] hidden">
+    <div class="bg-gray-800 border border-gray-700 rounded-xl shadow-xl max-w-sm w-full p-6 mx-3 text-center relative">
+      <button id="closeSaweriaModal" class="absolute top-3 right-3 p-2 bg-gray-700 rounded-full hover:bg-gray-600 text-gray-300 focus:outline-none" aria-label="Close">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+      <img src="https://saweria.co/favicon.ico" class="mx-auto w-12 h-12 mb-3" alt="Saweria Logo">
+      <h3 class="text-lg font-bold text-yellow-400 mb-2">Support This Project</h3>
+      <p class="text-gray-200 mb-4">
+        If you find this tool useful, please kindly consider donating via Saweria to help support further development. Thank you for your generosity! 😊
+      </p>
+      <a href="https://saweria.co/andrepelealu" target="_blank"
+         class="inline-flex items-center gap-2 bg-yellow-400 text-gray-900 rounded px-4 py-2 font-bold hover:bg-yellow-300 transition">
+        <img src="https://saweria.co/favicon.ico" alt="Saweria" class="w-5 h-5"> Donate via Saweria
+      </a>
+    </div>
+  </div>
+  
     <script>
         let currentStreamAbortController = null;
         document.getElementById('chatMenuBtn').onclick = (e) => {
@@ -1125,6 +1151,22 @@
         populateThreads();
         renderChat();
         renderUploadStatus();
+// Show Saweria popup after 25 seconds, once per session
+(function() {
+    if (!sessionStorage.getItem("saweriaModalShown")) {
+        setTimeout(() => {
+            document.getElementById('saweriaModal').classList.remove('hidden');
+            sessionStorage.setItem("saweriaModalShown", "1");
+        }, 25000); // 25 seconds
+    }
+    // Close modal when X is clicked or clicking outside
+    document.getElementById('closeSaweriaModal').onclick = function() {
+        document.getElementById('saweriaModal').classList.add('hidden');
+    };
+    document.getElementById('saweriaModal').addEventListener('click', function(e) {
+        if (e.target === this) this.classList.add('hidden');
+    });
+})();
 
     </script>
 </body>
