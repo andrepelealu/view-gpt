@@ -8,7 +8,6 @@
         window.dataLayer = window.dataLayer || [];
         function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
-
         gtag('config', 'G-4ZZCPDYDT6');
     </script>
     <meta charset="UTF-8" />
@@ -16,6 +15,15 @@
     <title>ChatGPT API Chat View</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background: #111827;
+            overflow: hidden;
+        }
+
         #showSidebarChevron,
         #hideSidebarBtn {
             transition: opacity 0.3s, left 0.3s, top 0.3s;
@@ -59,17 +67,10 @@
             animation: slideInSidebar 0.3s cubic-bezier(.4, 0, .2, 1) forwards;
         }
 
-        html,
-        body {
-            background: #111827;
-        }
-
         ::selection {
             background: #2563eb;
-            /* blue-600 from Tailwind */
             color: #fff;
         }
-
 
         .markdown-table th,
         .markdown-table td {
@@ -81,7 +82,6 @@
             background: #181f2a;
         }
 
-        /* Scrollbar for dark mode */
         ::-webkit-scrollbar {
             width: 8px;
             background: #181f2a;
@@ -94,13 +94,11 @@
     </style>
 </head>
 
-<body class="bg-gray-900 min-h-screen h-screen m-0 p-0 overflow-x-hidden text-gray-100">
-
-    <div class="min-h-screen h-screen flex flex-row bg-gray-900 w-full overflow-x-hidden items-stretch">
+<body class="bg-gray-900 h-screen min-h-0 text-gray-100">
+    <div class="flex flex-row h-screen min-h-0 w-full items-stretch">
         <!-- SIDEBAR/CONFIG -->
         <aside id="sidebar"
-            class="fixed md:static inset-y-0 left-0 w-4/5 max-w-xs md:w-80 md:min-w-[260px] md:max-w-xs bg-gray-800 border-r border-gray-700 md:rounded-l-2xl px-6 py-8 flex flex-col gap-4 z-30 shadow-lg md:shadow-none transition-transform transform -translate-x-full md:translate-x-0 h-full md:min-h-screen"
-            style="max-width:330px">
+            class="fixed md:static inset-y-0 left-0 w-4/5 max-w-xs md:w-80 md:min-w-[260px] md:max-w-xs bg-gray-800 border-r border-gray-700 md:rounded-l-2xl px-6 py-8 flex flex-col gap-4 z-30 shadow-lg md:shadow-none transition-transform transform -translate-x-full md:translate-x-0 h-full md:min-h-screen">
             <!-- Close icon mobile only -->
             <button id="closeSidebar"
                 class="md:hidden absolute top-4 right-4 z-40 bg-gray-700 rounded-full p-2 hover:bg-gray-600 focus:outline-none"
@@ -115,8 +113,8 @@
 
             <label class="font-semibold text-gray-300">Open API Key</label>
             <input type="password" id="api-key" placeholder="Enter API Key..."
-                class="mb-2 w-full p-2 border border-gray-600 rounded bg-gray-900 text-gray-100 focus:outline-none focus:ring focus:border-blue-400" />
-            <div class="flex flex-col gap-2 mb-2">
+                class="mb-1 w-full p-2 border border-gray-600 rounded bg-gray-900 text-gray-100 focus:outline-none focus:ring focus:border-blue-400" />
+            <div class="flex flex-col gap-2 mb-1">
                 <label class="font-semibold text-gray-300">Mode</label>
                 <select id="mode-select"
                     class="p-2 border border-gray-600 rounded bg-gray-900 text-gray-100 focus:outline-none focus:ring">
@@ -126,7 +124,7 @@
                     <option value="image-edit">Image Edit</option>
                 </select>
             </div>
-            <div class="flex flex-col gap-2 mb-2">
+            <div class="flex flex-col gap-2 mb-1">
                 <label class="font-semibold text-gray-300">Model</label>
                 <select id="model-select"
                     class="p-2 border border-gray-600 rounded bg-gray-900 text-gray-100 focus:outline-none focus:ring">
@@ -139,7 +137,7 @@
                     <option value="gpt-image-1">gpt-image-1</option>
                 </select>
             </div>
-            <div id="thread-controls" class="flex flex-col gap-2 mb-2">
+            <div id="thread-controls" class="flex flex-col gap-2 mb-1">
                 <label class="font-semibold text-gray-300">Threads</label>
                 <select id="thread-select"
                     class="p-2 border border-gray-600 rounded bg-gray-900 text-gray-100"></select>
@@ -155,12 +153,11 @@
                         Delete
                     </button>
                 </div>
-
             </div>
             <div>
                 <label class="font-semibold text-gray-300">Attach file</label>
                 <input type="file" id="file-input" multiple accept="image/*,application/pdf,text/*"
-                    class="mt-1 block w-full p-2 border border-gray-600 rounded bg-gray-900 text-gray-100" />
+                    class="mt-0 block w-full p-2 border border-gray-600 rounded bg-gray-900 text-gray-100" />
             </div>
             <!-- Contact Button -->
             <button id="contactBtn" type="button"
@@ -178,14 +175,11 @@
                 <img src="https://saweria.co/favicon.ico" alt="Saweria logo" class="w-6 h-6" />
                 Donate via Saweria
             </a>
-
-
-
         </aside>
 
         <!-- HIDE/SHOW SIDEBAR BUTTON (DESKTOP) -->
         <button id="hideSidebarBtn"
-            class="hidden md:block absolute left-[20.5rem] top-6 z-40 bg-gray-900 border border-gray-700 rounded-full p-2 hover:bg-gray-800 focus:outline-none transition"
+            class="hidden md:block absolute left-[17rem] top-2 z-40 bg-gray-900 border border-gray-700 rounded-full p-2 hover:bg-gray-800 focus:outline-none transition"
             style="transition: left .25s;" aria-label="Hide sidebar">
             <!-- Chevron left -->
             <svg class="w-5 h-5 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -202,7 +196,7 @@
         </button>
 
         <div
-            class="flex-1 flex flex-col md:flex-row w-full max-w-screen-xl mx-auto bg-gray-900 h-full min-h-0 rounded-2xl shadow-xl md:m-8 m-2 border border-gray-800">
+            class="flex-1 flex flex-col md:flex-row max-w-screen-xl mx-auto bg-gray-900 h-full min-h-0 rounded-2xl shadow-xl border border-gray-800">
             <!-- BURGER ICON FOR MOBILE -->
             <button id="burger"
                 class="md:hidden absolute top-4 left-4 z-30 bg-gray-800 border border-gray-700 rounded-full p-2 hover:bg-gray-700 focus:outline-none"
@@ -219,8 +213,7 @@
                 aria-hidden="true"></div>
 
             <!-- CHAT ROOM & INPUT -->
-            <main id="chatMain"
-                class="flex-1 flex flex-col min-h-0 h-full max-w-full transition-all overflow-x-auto p-2 md:p-6 bg-gray-900">
+            <main id="chatMain" class="flex-1 flex flex-col min-h-0 h-full max-w-full transition-all bg-gray-900">
                 <div class="flex justify-end px-2 py-1">
                     <div id="stream-stop-bar" class="flex justify-end px-2 py-1" style="display: none">
                         <button id="stopStreamBtn"
@@ -247,24 +240,25 @@
                         </div>
                     </div>
                 </div>
-
-                <div id="chat-box"
-                    class="flex-1 flex flex-col gap-2 px-2 py-4 bg-gray-950 border border-gray-800 overflow-y-auto overflow-x-auto h-full min-h-[200px] max-w-full rounded-xl transition shadow-inner">
-
-                    <!-- Messages rendered here -->
-                </div>
-                <form id="input-form" class="w-full bg-gray-900 border-t border-gray-800">
-                    <div class="flex gap-2 p-2">
-                        <textarea id="input" placeholder="Type a message..." required
-                            class="flex-1 p-3 border border-gray-700 bg-gray-800 text-gray-100 rounded resize-none min-h-[50px] max-h-[300px] focus:outline-none focus:ring focus:border-blue-600"
-                            style="transition: border-color .2s;"></textarea>
-                        <button type="submit"
-                            class="bg-blue-700 text-white px-6 py-2 rounded font-semibold hover:bg-blue-800 transition">Send</button>
+                <div class="flex-1 flex flex-col min-h-0">
+                    <div id="chat-box"
+                        class="flex-1 flex flex-col gap-2 px-2 py-4 bg-gray-950 border border-gray-800 overflow-y-auto overflow-x-auto h-full min-h-[200px] max-w-full rounded-xl transition shadow-inner">
+                        <!-- Messages rendered here -->
                     </div>
-                </form>
+                    <form id="input-form" class="w-full bg-gray-900 border-t border-gray-800 shrink-0">
+                        <div class="flex gap-2 p-2">
+                            <textarea id="input" placeholder="Type a message..." required
+                                class="flex-1 p-3 border border-gray-700 bg-gray-800 text-gray-100 rounded resize-none min-h-[50px] max-h-[300px] focus:outline-none focus:ring focus:border-blue-600"
+                                style="transition: border-color .2s;"></textarea>
+                            <button type="submit"
+                                class="bg-blue-700 text-white px-6 py-2 rounded font-semibold hover:bg-blue-800 transition">Send</button>
+                        </div>
+                    </form>
+                </div>
             </main>
         </div>
     </div>
+
     <!-- Saweria Donation Popup Modal -->
     <div id="saweriaModal"
         class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-[9999] hidden">
@@ -944,6 +938,8 @@
             threadData[currentThread].push({ role: 'user', content: message });
             renderChat();
             input.value = '';
+            input.style.height = "auto"; // <-- Reset textarea height after sending
+
 
             const chatBox = document.getElementById('chat-box');
             const assistantDiv = document.createElement('div');
