@@ -111,8 +111,8 @@
     <div class="flex flex-row h-[100dvh] min-h-0 w-full items-stretch">
         <!-- SIDEBAR/CONFIG -->
         <aside id="sidebar"
-        class="fixed md:static inset-y-0 left-0 w-4/5 max-w-xs md:w-80 md:min-w-[260px] md:max-w-xs bg-gray-800 border-r border-gray-700 md:rounded-l-2xl px-6 py-8 flex flex-col gap-4 z-30 shadow-lg md:shadow-none transition-transform transform -translate-x-full md:translate-x-0 h-full min-h-0 overflow-y-auto">
-        <!-- Close icon mobile only -->
+            class="fixed md:static inset-y-0 left-0 w-4/5 max-w-xs md:w-80 md:min-w-[260px] md:max-w-xs bg-gray-800 border-r border-gray-700 md:rounded-l-2xl px-6 py-8 flex flex-col gap-4 z-30 shadow-lg md:shadow-none transition-transform transform -translate-x-full md:translate-x-0 h-full min-h-0 overflow-y-auto">
+            <!-- Close icon mobile only -->
             <button id="closeSidebar"
                 class="md:hidden absolute top-4 right-4 z-40 bg-gray-700 rounded-full p-2 hover:bg-gray-600 focus:outline-none"
                 aria-label="Close menu">
@@ -973,42 +973,61 @@
                 // ==== IMAGE GENERATION MODE ====
                 if (mode === "image") {
                     bubble.innerHTML = "<em>Generating image...</em>";
-                    const res = await fetch("https://api.openai.com/v1/images/generations", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Authorization": `Bearer ${apiKey}`,
-                        },
-                        body: JSON.stringify({
-                            prompt: message,
-                            n: 1,
-                            model: model,
-                            size: "1024x1024"
-                        }),
-                    });
-                    if (!res.ok) {
-                        const errText = await res.text();
-                        throw new Error("Image API error: " + errText);
-                    }
-                    const json = await res.json();
-                    const urls = (json.data ?? []).map(obj => obj.url).filter(Boolean);
 
-                    if (urls.length === 0) {
-                        bubble.innerHTML = "<em>No image returned.</em>";
-                    } else {
-                        bubble.innerHTML = urls.map(url =>
-                            `<img src="${url}" alt="AI Generated" class="rounded-xl my-2 max-w-full border shadow-lg mx-auto">`
-                        ).join("");
+                    currentStreamAbortController = new AbortController();
+                    showStopStreamBtn();
+
+                    let aborted = false;
+                    try {
+                        const res = await fetch("https://api.openai.com/v1/images/generations", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Authorization": `Bearer ${apiKey}`,
+                            },
+                            body: JSON.stringify({
+                                prompt: message,
+                                n: 1,
+                                model: model,
+                                size: "1024x1024"
+                            }),
+                            signal: currentStreamAbortController.signal
+                        });
+
+                        if (!res.ok) {
+                            const errText = await res.text();
+                            throw new Error("Image API error: " + errText);
+                        }
+                        const json = await res.json();
+                        const urls = (json.data ?? []).map(obj => obj.url).filter(Boolean);
+
+                        if (urls.length === 0) {
+                            bubble.innerHTML = "<em>No image returned.</em>";
+                        } else {
+                            bubble.innerHTML = urls.map(url =>
+                                `<img src="${url}" alt="AI Generated" class="rounded-xl my-2 max-w-full border shadow-lg mx-auto">`
+                            ).join("");
+                        }
+                        threadData[currentThread].push({
+                            role: 'assistant',
+                            content: `[Image generated for prompt: "${message}"]`,
+                            images: urls
+                        });
+                        saveThreads();
+                        renderChat();
+                    } catch (err) {
+                        if (err.name === "AbortError") {
+                            aborted = true;
+                            bubble.innerHTML += '<br><em class="text-red-400">[Stopped by user]</em>';
+                        } else {
+                            bubble.textContent = `API error: ${err.message}`;
+                        }
                     }
-                    threadData[currentThread].push({
-                        role: 'assistant',
-                        content: `[Image generated for prompt: "${message}"]`,
-                        images: urls
-                    });
-                    saveThreads();
-                    renderChat();
+                    currentStreamAbortController = null;
+                    hideStopStreamBtn();
                     return;
                 }
+
 
                 // ==== WEB SEARCH MODE ====
                 if (mode !== 'chat') {
